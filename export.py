@@ -64,34 +64,34 @@ def infer_forward(text, text_lengths, scales, sid=None):
 
 with torch.no_grad():
     net_g.dec.remove_weight_norm()
+    net_g.flow.remove_weight_norm()
     net_g.forward = infer_forward
+    net_g.eval()
 
-net_g.eval()
+    dummy_input_length = 50
+    sequences = torch.randint(
+        low=0, high=num_symbols, size=(1, dummy_input_length), dtype=torch.long
+    )
+    sequence_lengths = torch.LongTensor([sequences.size(1)])
 
-dummy_input_length = 50
-sequences = torch.randint(
-    low=0, high=num_symbols, size=(1, dummy_input_length), dtype=torch.long
-)
-sequence_lengths = torch.LongTensor([sequences.size(1)])
+    sid = None
 
-sid = None
+    # noise, noise_w, length
+    scales = torch.FloatTensor([0.667, 1.0, 0.8])
+    dummy_input = (sequences, sequence_lengths, scales, sid)
 
-# noise, noise_w, length
-scales = torch.FloatTensor([0.667, 1.0, 0.8])
-dummy_input = (sequences, sequence_lengths, scales, sid)
-
-# Export
-torch.onnx.export(
-        model=net_g,
-        args=dummy_input,
-        f="model.onnx",
-        verbose=True,
-        opset_version=14,
-        input_names=["input", "input_lengths", "scales", "sid"],
-        output_names=["output"],
-        dynamic_axes={
-            "input": {0: "batch_size", 1: "phonemes"},
-            "input_lengths": {0: "batch_size"},
-            "output": {0: "batch_size", 1: "time"},
-        },
-)
+    # Export
+    torch.onnx.export(
+            model=net_g,
+            args=dummy_input,
+            f="model.onnx",
+            verbose=True,
+            opset_version=14,
+            input_names=["input", "input_lengths", "scales", "sid"],
+            output_names=["output"],
+            dynamic_axes={
+                "input": {0: "batch_size", 1: "phonemes"},
+                "input_lengths": {0: "batch_size"},
+                "output": {0: "batch_size", 1: "time"},
+            },
+    )

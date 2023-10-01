@@ -337,6 +337,8 @@ class ResidualCouplingTransformersLayer(nn.Module):  # vits2
             x = torch.cat([x0, x1], 1)
             return x
 
+    def remove_weight_norm(self):
+        self.enc.remove_weight_norm()
 
 class FFTransformerCouplingLayer(nn.Module):  # vits2
     def __init__(self,
@@ -597,6 +599,11 @@ class ResidualCouplingTransformersBlock(nn.Module):  # vits2
         return x
 
 
+    def remove_weight_norm(self):
+        for i, l in enumerate(self.flows):
+            if i % 2 == 0:
+                l.remove_weight_norm()
+
 class ResidualCouplingBlock(nn.Module):
     def __init__(self,
                  channels,
@@ -639,6 +646,10 @@ class ResidualCouplingBlock(nn.Module):
                 x = flow(x, x_mask, g=g, reverse=reverse)
         return x
 
+    def remove_weight_norm(self):
+        for i, l in enumerate(self.flows):
+            if i % 2 == 0:
+                l.remove_weight_norm()
 
 class PosteriorEncoder(nn.Module):
     def __init__(self,

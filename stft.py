@@ -67,7 +67,7 @@ def window_sumsquare(window, n_frames, hop_length=200, win_length=800,
     # Compute the squared window at the desired length
     win_sq = get_window(window, win_length, fftbins=True)
     win_sq = librosa_util.normalize(win_sq, norm=norm)**2
-    win_sq = librosa_util.pad_center(win_sq, n_fft)
+    win_sq = librosa_util.pad_center(win_sq, size=n_fft)
 
     # Fill the envelope
     for i in range(n_frames):
@@ -151,21 +151,21 @@ class STFT(torch.nn.Module):
             stride=self.hop_length,
             padding=0)
 
-        if self.window is not None:
-            window_sum = window_sumsquare(
-                self.window, magnitude.size(-1), hop_length=self.hop_length,
-                win_length=self.win_length, n_fft=self.filter_length,
-                dtype=np.float32)
-            # remove modulation effects
-            approx_nonzero_indices = torch.from_numpy(
-                np.where(window_sum > tiny(window_sum))[0])
-            window_sum = torch.autograd.Variable(
-                torch.from_numpy(window_sum), requires_grad=False)
-            window_sum = window_sum.to(inverse_transform.device()) if magnitude.is_cuda else window_sum
-            inverse_transform[:, :, approx_nonzero_indices] /= window_sum[approx_nonzero_indices]
-
-            # scale by hop ratio
-            inverse_transform *= float(self.filter_length) / self.hop_length
+#        if self.window is not None:
+#            window_sum = window_sumsquare(
+#                self.window, magnitude.size(-1), hop_length=self.hop_length,
+#                win_length=self.win_length, n_fft=self.filter_length,
+#                dtype=np.float32)
+#            # remove modulation effects
+#            approx_nonzero_indices = torch.from_numpy(
+#                np.where(window_sum > tiny(window_sum))[0])
+#            window_sum = torch.autograd.Variable(
+#                torch.from_numpy(window_sum), requires_grad=False)
+#            window_sum = window_sum.to(inverse_transform.device()) if magnitude.is_cuda else window_sum
+#            inverse_transform[:, :, approx_nonzero_indices] /= window_sum[approx_nonzero_indices]
+#
+#            # scale by hop ratio
+#            inverse_transform *= float(self.filter_length) / self.hop_length
 
         inverse_transform = inverse_transform[:, :, int(self.filter_length/2):]
         inverse_transform = inverse_transform[:, :, :-int(self.filter_length/2):]
@@ -199,7 +199,8 @@ class TorchSTFT(torch.nn.Module):
             magnitude * torch.exp(phase * 1j),
             self.filter_length, self.hop_length, self.win_length, window=self.window.to(magnitude.device))
 
-        return inverse_transform.unsqueeze(-2)  # unsqueeze to stay consistent with conv_transpose1d implementation
+        inverse_transform = inverse_transform.unsqueeze(-2)
+        return inverse_transform  # unsqueeze to stay consistent with conv_transpose1d implementation
 
     def forward(self, input_data):
         self.magnitude, self.phase = self.transform(input_data)
