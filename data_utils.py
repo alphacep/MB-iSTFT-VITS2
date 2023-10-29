@@ -8,7 +8,7 @@ import torch.utils.data
 import commons 
 from mel_processing import spectrogram_torch, mel_spectrogram_torch, spec_to_mel_torch
 from utils import load_wav_to_torch, load_filepaths_and_text
-from text import text_to_sequence, cleaned_text_to_sequence
+from text import text_to_sequence, cleaned_text_to_sequence, text_to_sequence_g2p
 
 
 class TextAudioLoader(torch.utils.data.Dataset):
@@ -32,10 +32,11 @@ class TextAudioLoader(torch.utils.data.Dataset):
         if self.use_mel_spec_posterior:
             self.n_mel_channels = getattr(hparams, "n_mel_channels", 80)
         self.cleaned_text = getattr(hparams, "cleaned_text", False)
+        self.g2p_text = getattr(hparams, "g2p_text", False)
 
         self.add_blank = hparams.add_blank
         self.min_text_len = getattr(hparams, "min_text_len", 1)
-        self.max_text_len = getattr(hparams, "max_text_len", 190)
+        self.max_text_len = getattr(hparams, "max_text_len", 250)
 
         random.seed(1234)
         random.shuffle(self.audiopaths_and_text)
@@ -102,7 +103,9 @@ class TextAudioLoader(torch.utils.data.Dataset):
         return spec, audio_norm
 
     def get_text(self, text):
-        if self.cleaned_text:
+        if self.g2p_text:
+            text_norm = text_to_sequence_g2p(text)
+        elif self.cleaned_text:
             text_norm = cleaned_text_to_sequence(text)
         else:
             text_norm = text_to_sequence(text, self.text_cleaners)

@@ -41,7 +41,7 @@ net_g = SynthesizerTrn(
     is_onnx=True,
     **hps.model)
 
-_ = utils.load_checkpoint("./logs/G_10000.pth", net_g, None)
+_ = utils.load_checkpoint("./logs/ru/G_1070000.pth", net_g, None)
 
 num_symbols = net_g.n_vocab
 num_speakers = net_g.n_speakers
@@ -56,7 +56,6 @@ def infer_forward(text, text_lengths, scales, sid=None):
             noise_scale=noise_scale,
             length_scale=length_scale,
             noise_scale_w=noise_scale_w,
-            sid=sid,
     )[0].unsqueeze(1)
 
     return audio

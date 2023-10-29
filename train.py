@@ -382,14 +382,6 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
                 if net_dur_disc is not None:
                     utils.save_checkpoint(net_dur_disc, optim_dur_disc, hps.train.learning_rate, epoch,
                                           os.path.join(hps.model_dir, "DUR_{}.pth".format(global_step)))
-
-                prev_g = os.path.join(hps.model_dir, "G_{}.pth".format(global_step - 3 * hps.train.eval_interval))
-                prev_d = os.path.join(hps.model_dir, "D_{}.pth".format(global_step - 3 * hps.train.eval_interval))
-                if os.path.exists(prev_g):
-                    os.remove(prev_g)
-                if os.path.exists(prev_d):
-                    os.remove(prev_d)
-
         global_step += 1
 
     if rank == 0:
@@ -457,5 +449,5 @@ def evaluate(hps, generator, eval_loader, writer_eval):
 
 
 if __name__ == "__main__":
-    os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
+#    os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
     main()

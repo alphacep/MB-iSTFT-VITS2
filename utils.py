@@ -11,7 +11,7 @@ import torch
 
 MATPLOTLIB_FLAG = False
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging
 
 
@@ -145,7 +145,7 @@ def get_hparams(init=True):
   parser = argparse.ArgumentParser()
   parser.add_argument('-c', '--config', type=str, default="./configs/base.json",
                       help='JSON file for configuration')
-  parser.add_argument('-m', '--model', type=str, required=True,
+  parser.add_argument('-m', '--model', type=str, default="ru",
                       help='Model name')
   
   args = parser.parse_args()
